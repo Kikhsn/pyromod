@@ -257,10 +257,13 @@ class CallbackQueryHandler:
 
     @patchable
     async def check(self, client, query):
-        listener = client.match_listener(
-            (query.message.chat.id, query.from_user.id, query.message.id),
-            ListenerTypes.CALLBACK_QUERY,
-        )[0]
+        try:
+            listener = client.match_listener(
+                (query.message.chat.id, query.from_user.id, query.message.id),
+                ListenerTypes.CALLBACK_QUERY,
+            )[0]
+        except AttributeError:
+            listener = None
 
         # managing unallowed user clicks
         if PyromodConfig.unallowed_click_alert:
