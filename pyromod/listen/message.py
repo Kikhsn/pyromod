@@ -30,3 +30,23 @@ class Message(pyrogram.types.messages_and_media.message.Message):
             user_id=from_user_id,
             message_id=message_id,
         )
+
+    @should_patch()
+    async def wait_for_response(
+        self,
+        from_user_id: Optional[Union[Union[int, str], List[Union[int, str]]]] = None,
+        timeout: Optional[int] = None,
+        reply_only:bool=True,
+        filters=None,
+
+    ):
+        message_id = getattr(self, "id", getattr(self, "message_id", None))
+
+        return await self._client.listen(
+            listener_type=ListenerTypes.MESSAGE,
+            timeout=timeout,
+            filters=filters,
+            chat_id=self.chat.id,
+            user_id=from_user_id,
+            message_id=message_id if reply_only else None,
+        )

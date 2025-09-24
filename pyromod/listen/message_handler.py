@@ -26,27 +26,36 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
         from_user_id = from_user.id if from_user else None
         from_user_username = from_user.username if from_user else None
 
-        message_id = getattr(message, "id", getattr(message, "message_id", None))
+        reply_to_id = getattr(getattr(message, "reply_to_message", None), "id", None)
+        cur_id = getattr(message, "id", getattr(message, "message_id", None))
 
-        data = Identifier(
-            message_id=message_id,
-            chat_id=[message.chat.id, message.chat.username],
-            from_user_id=[from_user_id, from_user_username],
+        chat = message.chat
+        chat_id = chat.id if chat else None
+        chat_username = chat.username if chat else None
+
+        patterns = (
+            Identifier(message_id=reply_to_id, chat_id=[chat_id, chat_username],
+                       from_user_id=[from_user_id, from_user_username]),
+            Identifier(message_id=None, chat_id=[chat_id, chat_username],
+                       from_user_id=[from_user_id, from_user_username]),
+            Identifier(message_id=cur_id, chat_id=[chat_id, chat_username],
+                       from_user_id=[from_user_id, from_user_username]),
         )
 
-        listener = client.get_listener_matching_with_data(data, ListenerTypes.MESSAGE)
+        listener = None
+        for pat in patterns:
+            listener = client.get_listener_matching_with_data(pat, ListenerTypes.MESSAGE)
+            if listener:
+                break
 
         listener_does_match = False
-
         if listener:
-            filters = listener.filters
-            if callable(filters):
-                if iscoroutinefunction(filters.__call__):
-                    listener_does_match = await filters(client, message)
+            flt = listener.filters
+            if callable(flt):
+                if iscoroutinefunction(flt.__call__):
+                    listener_does_match = await flt(client, message)
                 else:
-                    listener_does_match = await client.loop.run_in_executor(
-                        None, filters, client, message
-                    )
+                    listener_does_match = await client.loop.run_in_executor(None, flt, client, message)
             else:
                 listener_does_match = True
 
