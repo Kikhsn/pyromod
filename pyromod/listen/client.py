@@ -37,7 +37,7 @@ class Client(pyrogram.client.Client):
         user_id: Union[Union[int, str], List[Union[int, str]]] = None,
         message_id: Union[int, List[int]] = None,
         inline_message_id: Union[str, List[str]] = None,
-    ):
+    ) -> Union[pyrogram.types.Message, pyrogram.types.CallbackQuery]:
         pattern = Identifier(
             from_user_id=user_id,
             chat_id=chat_id,
@@ -87,7 +87,7 @@ class Client(pyrogram.client.Client):
         inline_message_id: Union[str, List[str]] = None,
         *args,
         **kwargs,
-    ):
+    ) -> Union[pyrogram.types.Message, pyrogram.types.CallbackQuery]:
         sent_message = None
         if text.strip() != "":
             chat_to_ask = chat_id[0] if isinstance(chat_id, list) else chat_id

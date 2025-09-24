@@ -18,7 +18,7 @@ class Message(pyrogram.types.messages_and_media.message.Message):
         timeout: Optional[int] = None,
         filters=None,
         alert: Union[str, bool] = True,
-    ):
+    ) -> pyrogram.types.CallbackQuery:
         message_id = getattr(self, "id", getattr(self, "message_id", None))
 
         return await self._client.listen(
@@ -39,7 +39,7 @@ class Message(pyrogram.types.messages_and_media.message.Message):
         reply_only:bool=True,
         filters=None,
 
-    ):
+    ) -> pyrogram.types.Message:
         message_id = getattr(self, "id", getattr(self, "message_id", None))
 
         return await self._client.listen(
