@@ -104,4 +104,15 @@ class MessageHandler(pyrogram.handlers.message_handler.MessageHandler):
             else:
                 raise ValueError("Listener must have either a future or a callback")
         else:
-            await self.original_callback(client, message, *args)
+            if callable(self.filters):
+                if iscoroutinefunction(self.filters.__call__):
+                    handler_does_match = await self.filters(client, message)
+                else:
+                    handler_does_match = await client.loop.run_in_executor(
+                        None, self.filters, client, message
+                    )
+            else:
+                handler_does_match = True
+
+            if handler_does_match:
+                await self.original_callback(client, message, *args)
