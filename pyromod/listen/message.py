@@ -1,5 +1,6 @@
 from typing import Optional, Union, List
 
+import asyncio
 import pyrogram
 
 from .client import Client
@@ -50,3 +51,10 @@ class Message(pyrogram.types.messages_and_media.message.Message):
             user_id=from_user_id,
             message_id=message_id if reply_only else None,
         )
+
+    @should_patch()
+    async def delete_delay(self, delay:int=5, revoke: bool = True):
+        async def do_task():
+            await asyncio.sleep(delay)
+            await self.delete(revoke)
+        asyncio.create_task(do_task())
