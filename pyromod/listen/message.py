@@ -6,7 +6,8 @@ import pyrogram
 from .client import Client
 from ..types import ListenerTypes
 from ..utils import patch_into, should_patch
-
+from ..types import Identifier
+from ..exceptions import ListenerStopped, ListenerTimeout
 
 @patch_into(pyrogram.types.messages_and_media.message.Message)
 class Message(pyrogram.types.messages_and_media.message.Message):
@@ -63,10 +64,12 @@ class Message(pyrogram.types.messages_and_media.message.Message):
     ) -> Union[pyrogram.types.CallbackQuery, pyrogram.types.Message]:
         message_id = getattr(self, "id", getattr(self, "message_id", None))
 
+        
+
         click_task = asyncio.ensure_future(
             self._client.listen(
                 listener_type=ListenerTypes.CALLBACK_QUERY,
-                timeout=timeout,
+                timeout=None,
                 filters=filters,
                 unallowed_click_alert=alert,
                 chat_id=self.chat.id,
@@ -78,28 +81,47 @@ class Message(pyrogram.types.messages_and_media.message.Message):
         response_task = asyncio.ensure_future(
             self._client.listen(
                 listener_type=ListenerTypes.MESSAGE,
-                timeout=timeout,
+                timeout=None,
                 filters=filters,
                 chat_id=self.chat.id,
                 user_id=from_user_id,
                 message_id=message_id if reply_only else None,
             )
         )
-
+        
         done, pending = await asyncio.wait(
             [click_task, response_task],
             return_when=asyncio.FIRST_COMPLETED,
+            timeout=timeout
         )
 
-        # Cancel listener yang kalah
-        for task in pending:
-            task.cancel()
-            try:
-                await task
-            except (asyncio.CancelledError, Exception):
-                pass
+        if pending:
+            for task in pending:
+                task.cancel()
+                if task is click_task:
+                    try:
+                        await self._client.stop_listening(
+                            listener_type=ListenerTypes.CALLBACK_QUERY,
+                            chat_id=self.chat.id,
+                            user_id=from_user_id,
+                            message_id=message_id,
+                        )
+                    except Exception:
+                        pass
+                else:
+                    try:
+                        await self._client.stop_listening(
+                            listener_type=ListenerTypes.MESSAGE,
+                            chat_id=self.chat.id,
+                            user_id=from_user_id,
+                            message_id=message_id if reply_only else None,
+                        )
+                    except Exception:
+                        pass
 
-        # Return hasil yang duluan selesai
+        if not done:
+            raise ListenerTimeout(timeout)
+
         return done.pop().result()
 
     @should_patch()
