@@ -1,0 +1,3 @@
+
+class PyromodException(Exception):
+    pass
