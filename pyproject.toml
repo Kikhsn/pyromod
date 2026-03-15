@@ -1,12 +1,15 @@
 [project]
 name = "pyromod"
-version = "1.0.0"
+version = "1.1.0"
 description = "A monkeypatcher add-on for Pyrogram that does conversation handling"
 authors = [
     { name = "Khairul"}
 ]
+
 dependencies = [
-    "pyrotgfork"
+    "pyrotgfork",
+    "pytgcrypto",
+    "pillow",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
