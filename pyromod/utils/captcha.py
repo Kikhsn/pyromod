@@ -3,7 +3,7 @@ from pathlib import Path
 import random, os, math
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-ASSETS_FONTS = list(Path("pyromod/assets/fonts").glob("*.ttf"))
+ASSETS_FONTS = list((Path(__file__).parent.parent / "assets/fonts").glob("*.ttf"))
 CHAR_POOL      = "ABCDEFGHJKMNPQRTUVWXYZ23456789"
 COLORS = [
     # Blues & Teals
@@ -287,5 +287,4 @@ def generate_captcha_math(n_choices: int = 5, difficulty: int = 1) -> dict:
         "answer"  : str(answer),
         "choices" : choices,
     }
-
 
