@@ -4,6 +4,7 @@ import random, os, math
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 ASSETS_FONTS = list((Path(__file__).parent.parent / "assets/fonts").glob("*.ttf"))
+SYSTEM_FONTS = list((Path(__file__).parent.parent / "assets/fonts/system").glob("*.ttf"))
 CHAR_POOL      = "ABCDEFGHJKMNPQRTUVWXYZ23456789"
 COLORS = [
     # Blues & Teals
@@ -69,6 +70,8 @@ def _get_system_fonts():
         "/Library/Fonts/Arial Bold.ttf",
         "/Library/Fonts/Arial.ttf",
     ]
+    candidates += SYSTEM_FONTS
+    
     exists = []
     for p in candidates:
         if os.path.exists(p):
